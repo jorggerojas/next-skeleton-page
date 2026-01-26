@@ -1,0 +1,196 @@
+name: Vite test Coverage (PR)
+
+on:
+  pull_request:
+    branches-ignore:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: vite-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      COV_FILE: coverage/lcov.info
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 1.2.4
+
+      - name: Install deps
+        run: bun install --no-frozen-lockfile
+
+      - name: Run coverage (Vite test)
+        run: bun run test:coverage
+
+      - name: Coverage Report
+        uses: romeovs/lcov-reporter-action@v0.3.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          lcov-file: ./coverage/lcov.info
+          delete-old-comments: true
+
+      - name: Generate Coverage Summary
+        id: coverage-summary
+        run: |
+          if [ -f "coverage/lcov.info" ]; then
+            # extract coverage data
+            LINES_FOUND=$(grep -o 'LF:[0-9]*' coverage/lcov.info | cut -d: -f2 | paste -sd+ | bc)
+            LINES_HIT=$(grep -o 'LH:[0-9]*' coverage/lcov.info | cut -d: -f2 | paste -sd+ | bc)
+            FUNCTIONS_FOUND=$(grep -o 'FNF:[0-9]*' coverage/lcov.info | cut -d: -f2 | paste -sd+ | bc)
+            FUNCTIONS_HIT=$(grep -o 'FNH:[0-9]*' coverage/lcov.info | cut -d: -f2 | paste -sd+ | bc)
+            BRANCHES_FOUND=$(grep -o 'BRF:[0-9]*' coverage/lcov.info | cut -d: -f2 | paste -sd+ | bc)
+            BRANCHES_HIT=$(grep -o 'BRH:[0-9]*' coverage/lcov.info | cut -d: -f2 | paste -sd+ | bc)
+
+            # calculate coverage percentages
+            if [ "$LINES_FOUND" -gt 0 ]; then
+              LINE_COVERAGE=$(echo "scale=2; $LINES_HIT * 100 / $LINES_FOUND" | bc)
+            else
+              LINE_COVERAGE=0
+            fi
+
+            if [ "$FUNCTIONS_FOUND" -gt 0 ]; then
+              FUNCTION_COVERAGE=$(echo "scale=2; $FUNCTIONS_HIT * 100 / $FUNCTIONS_FOUND" | bc)
+            else
+              FUNCTION_COVERAGE=0
+            fi
+
+            if [ "$BRANCHES_FOUND" -gt 0 ]; then
+              BRANCH_COVERAGE=$(echo "scale=2; $BRANCHES_HIT * 100 / $BRANCHES_FOUND" | bc)
+            else
+              BRANCH_COVERAGE=0
+            fi
+
+            # Set outputs
+            echo "line_coverage=${LINE_COVERAGE}" >> $GITHUB_OUTPUT
+            echo "function_coverage=${FUNCTION_COVERAGE}" >> $GITHUB_OUTPUT
+            echo "branch_coverage=${BRANCH_COVERAGE}" >> $GITHUB_OUTPUT
+            echo "lines_hit=${LINES_HIT}" >> $GITHUB_OUTPUT
+            echo "lines_total=${LINES_FOUND}" >> $GITHUB_OUTPUT
+            echo "functions_hit=${FUNCTIONS_HIT}" >> $GITHUB_OUTPUT
+            echo "functions_total=${FUNCTIONS_FOUND}" >> $GITHUB_OUTPUT
+            echo "branches_hit=${BRANCHES_HIT}" >> $GITHUB_OUTPUT
+            echo "branches_total=${BRANCHES_FOUND}" >> $GITHUB_OUTPUT
+            echo "coverage_available=true" >> $GITHUB_OUTPUT
+          else
+            echo "coverage_available=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment Coverage on PR
+        if: steps.coverage-summary.outputs.coverage_available == 'true' && github.event.pull_request.head.repo.fork == false
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const lineCoverage = '${{ steps.coverage-summary.outputs.line_coverage }}';
+            const functionCoverage = '${{ steps.coverage-summary.outputs.function_coverage }}';
+            const branchCoverage = '${{ steps.coverage-summary.outputs.branch_coverage }}';
+            const linesHit = '${{ steps.coverage-summary.outputs.lines_hit }}';
+            const linesTotal = '${{ steps.coverage-summary.outputs.lines_total }}';
+            const functionsHit = '${{ steps.coverage-summary.outputs.functions_hit }}';
+            const functionsTotal = '${{ steps.coverage-summary.outputs.functions_total }}';
+            const branchesHit = '${{ steps.coverage-summary.outputs.branches_hit }}';
+            const branchesTotal = '${{ steps.coverage-summary.outputs.branches_total }}';
+
+            // Function to get emoji based on percentage
+            function getCoverageEmoji(percentage) {
+              if (percentage >= 80) return '🟢';
+              if (percentage >= 60) return '🟡';
+              return '🔴';
+            }
+
+            // Function to get visual progress bar
+            function getProgressBar(percentage, length = 20) {
+              const filled = Math.round((percentage / 100) * length);
+              const empty = length - filled;
+              return '█'.repeat(filled) + '░'.repeat(empty);
+            }
+
+            const lineEmoji = getCoverageEmoji(parseFloat(lineCoverage));
+            const functionEmoji = getCoverageEmoji(parseFloat(functionCoverage));
+            const branchEmoji = getCoverageEmoji(parseFloat(branchCoverage));
+
+            const comment = `## 📊 Code Coverage Report
+
+            | Metric | Coverage | Details |
+            |--------|----------|---------|
+            | ${lineEmoji} **Lines** | **${lineCoverage}%** | ${linesHit}/${linesTotal} lines covered |
+            | ${functionEmoji} **Functions** | **${functionCoverage}%** | ${functionsHit}/${functionsTotal} functions covered |
+            | ${branchEmoji} **Branches** | **${branchCoverage}%** | ${branchesHit}/${branchesTotal} branches covered |
+
+            ### Coverage Visualization
+            **Lines**: ${getProgressBar(parseFloat(lineCoverage))} ${lineCoverage}%
+            **Functions**: ${getProgressBar(parseFloat(functionCoverage))} ${functionCoverage}%
+            **Branches**: ${getProgressBar(parseFloat(branchCoverage))} ${branchCoverage}%
+
+            ---
+            *Coverage report generated by Vite test suite* ⚡`;
+
+            // Search for existing bot comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && comment.body.includes('📊 Code Coverage Report')
+            );
+
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }
+
+      - name: Comment No Coverage on PR
+        if: steps.coverage-summary.outputs.coverage_available == 'false' && github.event.pull_request.head.repo.fork == false
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comment = `## ⚠️ Coverage Report
+
+            Coverage report cannot be generated. Please ensure that:
+            - The file \`coverage/lcov.info\` is being generated correctly
+            - The command \`bun run test:coverage\` is configured in your package.json
+            - Tests are running without errors
+
+            ---
+            *Coverage report generated by Vite test suite* ⚡`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
+
+      - name: Print Coverage (forks)
+        if: github.event.pull_request.head.repo.fork == true
+        run: |
+          echo "Lines:  ${{ steps.coverage-summary.outputs.line_coverage }}%"
+          echo "Funcs:  ${{ steps.coverage-summary.outputs.function_coverage }}%"
+          echo "Branch: ${{ steps.coverage-summary.outputs.branch_coverage }}%"
