@@ -24,9 +24,11 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.PLAYWRIGHT_VERSION }}
-      - name: Install Playwright Browsers
+      - name: Install Playwright browsers
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: bun run playwright:install
+        run: bunx playwright install
+      - name: Install system dependencies
+        run: bunx playwright install-deps
       - name: Run Playwright tests
         run: bun run test:e2e
         env:
