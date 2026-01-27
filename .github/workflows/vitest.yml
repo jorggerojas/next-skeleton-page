@@ -22,12 +22,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.2.4
+          bun-version: 1.3.3
 
       - name: Install deps
         run: bun install --no-frozen-lockfile
@@ -36,7 +36,7 @@ jobs:
         run: bun run test:coverage
 
       - name: Coverage Report
-        uses: romeovs/lcov-reporter-action@v0.3.1
+        uses: romeovs/lcov-reporter-action@v0.4.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           lcov-file: ./coverage/lcov.info
@@ -90,7 +90,7 @@ jobs:
 
       - name: Comment Coverage on PR
         if: steps.coverage-summary.outputs.coverage_available == 'true' && github.event.pull_request.head.repo.fork == false
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const lineCoverage = '${{ steps.coverage-summary.outputs.line_coverage }}';
@@ -168,7 +168,7 @@ jobs:
 
       - name: Comment No Coverage on PR
         if: steps.coverage-summary.outputs.coverage_available == 'false' && github.event.pull_request.head.repo.fork == false
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const comment = `## ⚠️ Coverage Report
