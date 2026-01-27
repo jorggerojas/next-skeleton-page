@@ -69,7 +69,7 @@
     "vitest": "4.0.18"
   },
   "lint-staged": {
-    "*.{js,ts,tsx,jsx,json,md,css,mjs,cjs}": [
+    "*.{js,ts,tsx,jsx,json,css,mjs,cjs}": [
       "biome check --write --error-on-warnings --files-ignore-unknown=true"
     ]
   }
