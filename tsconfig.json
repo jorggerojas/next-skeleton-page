@@ -13,7 +13,7 @@
     "isolatedModules": true,
     "incremental": true,
     "paths": {
-      "@/*": ["./src/*"],
+      "@/*": ["./src/*"]
     },
     "jsx": "react-jsx",
     "types": ["node", "@testing-library/jest-dom"]

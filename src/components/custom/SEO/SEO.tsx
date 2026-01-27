@@ -30,24 +30,24 @@ export default function SEO({
   return (
     <Head>
       <title>{title}</title>
-      <meta name='description' content={description} />
-      {keywords && <meta name='keywords' content={keywords} />}
-      <meta name='robots' content={metaRobots} />
+      <meta name="description" content={description} />
+      {keywords && <meta name="keywords" content={keywords} />}
+      <meta name="robots" content={metaRobots} />
 
       {/* Open Graph */}
-      <meta property='og:title' content={title} />
-      <meta property='og:description' content={description} />
-      <meta property='og:type' content={ogType} />
-      {ogImage && <meta property='og:image' content={ogImage} />}
+      <meta property="og:title" content={title} />
+      <meta property="og:description" content={description} />
+      <meta property="og:type" content={ogType} />
+      {ogImage && <meta property="og:image" content={ogImage} />}
 
       {/* Twitter Card */}
-      <meta name='twitter:card' content='summary_large_image' />
-      <meta name='twitter:title' content={title} />
-      <meta name='twitter:description' content={description} />
-      {ogImage && <meta name='twitter:image' content={ogImage} />}
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content={title} />
+      <meta name="twitter:description" content={description} />
+      {ogImage && <meta name="twitter:image" content={ogImage} />}
 
       {/* Canonical URL */}
-      {canonical && <link rel='canonical' href={canonical} />}
+      {canonical && <link rel="canonical" href={canonical} />}
     </Head>
   );
 }
