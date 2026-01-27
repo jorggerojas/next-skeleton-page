@@ -61,6 +61,7 @@
     "dotenv": "17.2.3",
     "happy-dom": "^20.3.9",
     "husky": "9.1.7",
+    "lint-staged": "^16.2.7",
     "standard-version": "9.5.0",
     "tailwindcss": "4.1.18",
     "typescript": "5.9.3",
