@@ -1,10 +1,10 @@
-#!/usr/bin/env bun
+#!/usr/bin/env -S npx tsx
 
 /**
  * Script to create a new Cursor skill
  *
  * Usage:
- *   bun run create-skill --folder=tests --m="Testing skill description" [--scope="hooks,stores"]
+ *   pnpm run create-skill --folder=tests --m="Testing skill description" [--scope="hooks,stores"]
  */
 
 import { writeFile, mkdir, readFile, readdir } from "node:fs/promises";
@@ -35,14 +35,14 @@ function parseArgs(): SkillOptions {
 
   if (!folderArg || !messageArg) {
     console.error(
-      'Usage: bun run create-skill --folder=[folder-name] --m="[description]" [--scope="hooks,stores"]',
+      'Usage: pnpm run create-skill --folder=[folder-name] --m="[description]" [--scope="hooks,stores"]',
     );
     process.exit(1);
   }
 
   const folder = folderArg.split("=")[1];
   const message = messageArg.split("=")[1].replace(/^["']|["']$/g, "");
-  const name = nameArg?.split("=")[1] || folder;
+  const name = nameArg?.split("=")[1] || `SKILL.md`;
 
   // Parse scope: --scope="hooks,stores" or --scope="[hooks,stores]"
   let scope: string[] | undefined;
@@ -166,7 +166,7 @@ These skills are automatically applied when working with their respective domain
 Create new skills with:
 
 \`\`\`bash
-bun run create-skill --folder=my-skill --m="Description of the skill" [--scope="hooks,stores"]
+pnpm run create-skill --folder=my-skill --m="Description of the skill" [--scope="hooks,stores"]
 \`\`\`
 
 This generates a \`SKILL.md\` in \`.cursor/skills/my-skill/\` with the proper frontmatter and automatically updates this file.`;
@@ -241,10 +241,10 @@ async function updateSkillsReadme(skills: SkillInfo[]): Promise<void> {
 }
 
 async function updateAgentMd(skills: SkillInfo[]): Promise<void> {
-  const agentPath = "agent.md";
+  const agentPath = "AGENTS.md";
 
   if (!existsSync(agentPath)) {
-    console.warn("⚠ agent.md not found, skipping update");
+    console.warn("⚠ AGENTS.md not found, skipping update");
     return;
   }
 
@@ -263,15 +263,17 @@ async function updateAgentMd(skills: SkillInfo[]): Promise<void> {
   }
 
   await writeFile(agentPath, newContent, "utf-8");
-  console.log("✓ Updated agent.md with skills list");
+  console.log("✓ Updated AGENTS.md with skills list");
 }
 
 async function formatCode(): Promise<void> {
   try {
-    execSync("bun run lint", { stdio: "inherit" });
+    execSync("pnpm run lint", { stdio: "inherit" });
   } catch (error) {
     console.error(
-      `Error formatting code: ${error instanceof Error ? error.message : String(error)}`,
+      `Error formatting code: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
     );
     process.exit(1);
   }
