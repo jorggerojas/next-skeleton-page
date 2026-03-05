@@ -4,13 +4,15 @@ Next.js starter/skeleton project with Pages Router. Pre-configured with modern t
 
 > **Note**: This is a skeleton project template. The README provides basic information and commands, but you'll need to customize it for your specific project needs.
 
+> **Package manager**: This project uses **pnpm** (recommended). You can also use **bun**, **npm**, or **yarn**. If you switch, update: `package.json` scripts, GitHub Actions workflows (`.github/workflows/`), CI configs, and any documentation that references the package manager.
+
 ## Tech Stack
 
 - **Next.js 16** (Pages Router)
 - **React 19**
 - **TypeScript**
 - **Tailwind CSS 4**
-- **bun** (package manager)
+- **pnpm** (package manager; also supports bun, npm, yarn)
 
 ## Key Dependencies
 
@@ -25,23 +27,23 @@ Next.js starter/skeleton project with Pages Router. Pre-configured with modern t
 
 ```bash
 # Development
-bun dev          # Start dev server
-bun build        # Production build
-bun start        # Start production server
+pnpm dev          # Start dev server
+pnpm build        # Production build
+pnpm start        # Start production server
 
 # Code Quality
-bun lint         # Lint and fix with Biome
-bun lint:ci      # Lint in CI mode (no auto-fix)
-bun format       # Format code with Biome
+pnpm lint         # Lint and fix with Biome
+pnpm lint:ci      # Lint in CI mode (no auto-fix)
+pnpm format       # Format code with Biome
 
 # Testing
-bun test         # Run Vitest unit tests
-bun test:coverage # Run tests with coverage
+pnpm test         # Run Vitest unit tests
+pnpm test:coverage # Run tests with coverage
 
 # Releases
-bun release:patch # Create patch release
-bun release:minor # Create minor release
-bun release:major # Create major release
+pnpm release:patch # Create patch release
+pnpm release:minor # Create minor release
+pnpm release:major # Create major release
 ```
 
 ## Project Structure
@@ -67,7 +69,7 @@ Copy `.env.example` to `.env.local` for local development. Use `.env.test` for t
 ## Development Principles & Patterns
 
 - Follow conventional commits (enforced by commitlint)
-- Run `bun lint` before committing (enforced by husky pre-commit)
+- Run `pnpm lint` before committing (enforced by husky pre-commit)
 - Use Zustand for global state, react-hook-form for form state
 - Validate forms with Zod schemas
 - **USE PAGES ROUTER ALWAYS** - never App Router patterns
@@ -101,13 +103,13 @@ Choose the appropriate release type based on your changes:
 
 ```bash
 # Patch release (bug fixes): 1.0.0 → 1.0.1
-bun run release:patch
+pnpm run release:patch
 
 # Minor release (new features, backward compatible): 1.0.0 → 1.1.0
-bun run release:minor
+pnpm run release:minor
 
 # Major release (breaking changes): 1.0.0 → 2.0.0
-bun run release:major
+pnpm run release:major
 ```
 
 This command will:
@@ -178,7 +180,7 @@ git push origin develop
 
 ## Agent Skills
 
-This project includes Cursor agent skills to help with development. See [agent.md](./agent.md) for details.
+This project includes Cursor agent skills to help with development. See [AGENTS.md](./AGENTS.md) for details.
 
 The skills are located in `.cursor/skills/` and provide guidance for:
 
