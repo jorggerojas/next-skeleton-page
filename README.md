@@ -5,6 +5,7 @@ Next.js starter/skeleton project with Pages Router. Pre-configured with modern t
 > **Note**: This is a skeleton project template. The README provides basic information and commands, but you'll need to customize it for your specific project needs.
 
 > **Package manager**: This project uses **pnpm** (recommended). You can also use **bun**, **npm**, or **yarn**. If you switch, update: `package.json` scripts, GitHub Actions workflows (`.github/workflows/`), CI configs, and any documentation that references the package manager.
+> Add or remove ConfigCat and its SDK from the env file to start development mode
 
 ## Tech Stack
 
