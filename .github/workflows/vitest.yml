@@ -4,6 +4,13 @@ on:
   pull_request:
     branches-ignore:
       - main
+    paths:
+      - ".github/workflows/vitest.yml"
+      - "src/**"
+      - "**/*.test.ts"
+      - "**/*.test.tsx"
+      - "vitest.config.*"
+      - "package.json"
 
 permissions:
   contents: read
@@ -24,16 +31,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Setup bun
-        uses: oven-sh/setup-bun@v2
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
         with:
-          bun-version: 1.3.3
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+          cache: "pnpm"
 
       - name: Install deps
-        run: bun install --no-frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Run linter
+        run: pnpm run lint:ci
+
+      - name: Build
+        run: pnpm run build
 
       - name: Run coverage (Vite test)
-        run: bun run test:coverage
+        run: pnpm run test:coverage
 
       - name: Coverage Report
         uses: romeovs/lcov-reporter-action@v0.4.0
@@ -175,7 +194,7 @@ jobs:
 
             Coverage report cannot be generated. Please ensure that:
             - The file \`coverage/lcov.info\` is being generated correctly
-            - The command \`bun run test:coverage\` is configured in your package.json
+            - The test command is configured in your package.json
             - Tests are running without errors
 
             ---
