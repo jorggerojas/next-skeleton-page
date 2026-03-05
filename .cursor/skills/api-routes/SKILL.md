@@ -304,10 +304,64 @@ export default async function handler(
 }
 ```
 
+## Data Transformations (External APIs)
+
+When working with external APIs, use normalizers and serializers to transform data (only when the route calls an external API):
+
+```tsx
+// src/pages/api/users.ts
+import { normalizeUser, normalizeUserList } from "@/lib/normalizers";
+import { serializeCreateUser } from "@/lib/serializers";
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method === "GET") {
+    const response = await fetch(`${process.env.EXTERNAL_API_URL}/users`);
+    const externalData = await response.json();
+    
+    // Normalize: External (verbose) → Internal (short)
+    const users = normalizeUserList(externalData.data);
+    
+    return res.status(200).json({
+      message: HTTP_RESPONSE_MESSAGE.SUCCESS,
+      data: { users },
+      status: 200,
+    });
+  }
+  
+  if (req.method === "POST") {
+    const body = req.body as CreateUserBody;
+    
+    // Serialize: Internal (short) → External (verbose)
+    const serializedData = serializeCreateUser(body);
+    
+    const response = await fetch(`${process.env.EXTERNAL_API_URL}/users`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(serializedData),
+    });
+    
+    const externalData = await response.json();
+    const user = normalizeUser(externalData);
+    
+    return res.status(201).json({
+      message: HTTP_RESPONSE_MESSAGE.SUCCESS,
+      data: { user },
+      status: 201,
+    });
+  }
+}
+```
+
+**Note**: External types (e.g. `ExternalUsersResponse`) and internal types (e.g. `User`) live in `src/types/`. Use `externalClient` from `@/lib/api/external-client` when proxying to external APIs. See `src/lib/TRANSFORMATIONS.md` for field mappings (if your project uses it).
+
 ## Important Notes
 
+- **Callers**: These routes are called by **actions** in `src/lib/api/{resource}/actions.ts`. The app flow is: Page → Hook → Action → this API route → (optional) external API. Keep response shape consistent with what actions expect (`res.json({ message, data, status })` with `data` as the payload).
 - **Always use `HttpResponses` type** from `src/types/http-responses.ts` for consistent API responses
 - Import `HTTP_RESPONSE_MESSAGE` enum for standardized error messages
+- **Use normalizers** only when this route calls an external API (when receiving external data)
+- **Use serializers** only when this route sends data to an external API
+- See `src/lib/TRANSFORMATIONS.md` for field mappings and flow
 - API routes are server-side only
 - Use `NextApiRequest` and `NextApiResponse` types
 - Export a default function named `handler`

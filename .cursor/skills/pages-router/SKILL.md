@@ -105,6 +105,8 @@ export default function Document() {
 
 **CRITICAL**: Only pages handle server-side data fetching. Components, hooks, or other files should NOT make server calls directly. All data fetching happens in the page file using `getServerSideProps`, `getStaticProps`, or `getStaticPaths`.
 
+For **client-side** data (lists, forms, mutations), use custom hooks that call the internal API via **actions** (`src/lib/api/*/actions.ts`) and **query keys** (`src/lib/api/*/keys.ts`). See the **hooks** skill. If your project integrates external APIs, see `src/lib/TRANSFORMATIONS.md` for the full flow.
+
 ### getServerSideProps
 
 The page component goes first, then the data fetching function. **The page component's Props type MUST be inferred from `getServerSideProps` using `InferGetServerSidePropsType`.**
@@ -229,33 +231,33 @@ export default function UsersPage({ initialUsers }: InferGetServerSidePropsType<
 ```
 
 ```tsx
-// src/pages/hotels/[id].tsx
+// src/pages/users/[id].tsx
 import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
-import { useHotels } from "@/hooks/hotels";
+import { useUser, useCreateUser } from "@/hooks/users";
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const { id } = context.params!;
-  return { props: { hotelId: id } };
-};
-
-export default function HotelPage({ hotelId }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const { data: hotel } = useHotels.getById(hotelId);
-  const createMutation = useHotels.create();
+export default function UserPage({ userId }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const { data: user } = useUser(userId);
+  const createMutation = useCreateUser();
   
   const handleCreate = () => {
-    createMutation.mutate({ name: "New Hotel" });
+    createMutation.mutate({ name: "New User" });
   };
   
   return (
     <div>
-      <h1>{hotel?.name}</h1>
-      <button onClick={handleCreate}>Create Hotel</button>
+      <h1>{user?.name}</h1>
+      <button onClick={handleCreate}>Create User</button>
     </div>
   );
 }
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const { id } = context.params!;
+  return { props: { userId: id } };
+};
 ```
 
-**Note**: Server-side data fetching (API calls) should only happen in `getServerSideProps` or `getStaticProps`. Hooks like `useUsers()`, `useHotels()`, `useHotels.create()`, etc., are for client-side data fetching, mutations, or other client-side logic.
+**Note**: Server-side data fetching (API calls) should only happen in `getServerSideProps` or `getStaticProps`. Hooks like `useUsers()`, `useUser()`, `useCreateUser()`, etc., are for client-side data fetching, mutations, or other client-side logic.
 
 ## Client-Side Navigation
 
@@ -331,7 +333,7 @@ export default function DynamicPage({ seo }: InferGetServerSidePropsType<typeof 
 - **Page Props type MUST be inferred** - use `InferGetServerSidePropsType<typeof getServerSideProps>` or `InferGetStaticPropsType<typeof getStaticProps>`
 - Pages are React components that export a default function
 - Data fetching functions (`getServerSideProps`, `getStaticProps`, `getStaticPaths`) go **after** the page component
-- Pages can use hooks like `useUsers()`, `useHotels()`, `useHotels.create()`, etc. for client-side data fetching and mutations
+- Pages can use hooks like `useUsers()`, `useUser()`, `useCreateUser()`, etc. for client-side data fetching and mutations
 - Use `PageLayout` component for SEO metadata (static or dynamic)
 - Use `useRouter` from `next/router` (not `next/navigation`)
 - Global styles go in `src/styles/globals.css` and imported in `_app.tsx`

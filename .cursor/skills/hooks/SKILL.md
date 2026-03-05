@@ -153,6 +153,55 @@ export default function MyComponent() {
 }
 ```
 
+## Data-fetching hooks: use actions + keys
+
+For any hook that fetches or mutates API data, **do not** call `apiClient` or use hardcoded query keys. Use the API layer:
+
+- **Actions** from `src/lib/api/{resource}/actions.ts` (e.g. `getUsers`, `getUser`, `createUser`, `updateUser`) as `queryFn` or `mutationFn`.
+- **Keys** from `src/lib/api/{resource}/keys.ts` (e.g. `usersKeys.list(params)`, `usersKeys.detail(id)`) for `queryKey` and `invalidateQueries`.
+
+Example:
+
+```tsx
+// src/hooks/useUser.ts
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getUsers, getUser } from "@/lib/api/users/actions";
+import { usersKeys } from "@/lib/api/users/keys";
+
+export function useUsers(params?: GetUsersQuery, options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: usersKeys.list(params),
+    queryFn: () => getUsers(params),
+    enabled: options?.enabled ?? true,
+  });
+}
+
+export function useUser(id?: string, options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: usersKeys.detail(id ?? ""),
+    queryFn: () => (id ? getUser(id) : Promise.reject(new Error("ID required"))),
+    enabled: (options?.enabled ?? true) && !!id,
+  });
+}
+```
+
+```tsx
+// src/hooks/useCreateUser.ts
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createUser } from "@/lib/api/users/actions";
+import { usersKeys } from "@/lib/api/users/keys";
+
+export function useCreateUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: usersKeys.all });
+    },
+  });
+}
+```
+
 ## Creating New Hooks
 
 Follow this pattern:
@@ -193,6 +242,7 @@ import { useMyHook } from "@/hooks";
 
 - **Prefix with `use`** - All hooks must start with `use`
 - **Export from index.ts** - Import from `@/hooks`
+- **Data-fetching hooks** - Use **actions** and **keys** from `src/lib/api/{resource}/`; do not use apiClient or hardcoded query keys in hooks
 - **Handle SSR** - Check for `typeof window !== "undefined"` before accessing browser APIs
 - **Avoid `any` type** - Define proper return types
 - **Clean up effects** - Always return cleanup functions from useEffect

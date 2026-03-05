@@ -11,6 +11,7 @@ on:
       - "**/*.e2e.tsx"
       - "playwright.config.*"
       - "package.json"
+      - "pnpm-lock.yaml"
 jobs:
   run-playwright-e2e-tests:
     timeout-minutes: 60

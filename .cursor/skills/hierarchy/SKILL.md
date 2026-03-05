@@ -28,7 +28,7 @@ Page (src/pages/)
 Single UI elements with no business logic. Receive props, render UI.
 
 ```tsx
-// src/ui/custom/Button/Button.tsx
+// src/components/custom/Button/Button.tsx
 interface ButtonProps {
   children: ReactNode;
   onClick?: () => void;
@@ -46,7 +46,7 @@ export default function Button({ children, onClick, variant = "primary", disable
 ```
 
 ```tsx
-// src/ui/custom/Input/Input.tsx
+// src/components/custom/Input/Input.tsx
 interface InputProps {
   value: string;
   onChange: (value: string) => void;
@@ -68,7 +68,7 @@ export default function Input({ value, onChange, placeholder, type = "text" }: I
 Group of atoms with simple interaction logic. No hooks, no data fetching.
 
 ```tsx
-// src/ui/custom/SearchInput/SearchInput.tsx
+// src/components/custom/SearchInput/SearchInput.tsx
 import Input from "../Input";
 import Button from "../Button";
 
@@ -96,7 +96,7 @@ export default function SearchInput({ value, onChange, onSearch, placeholder }: 
 ```
 
 ```tsx
-// src/ui/custom/UserCard/UserCard.tsx
+// src/components/custom/UserCard/UserCard.tsx
 import Avatar from "../Avatar";
 import Badge from "../Badge";
 
@@ -126,7 +126,7 @@ export default function UserCard({ name, email, avatarUrl, role }: UserCardProps
 Large components with business logic. Can use hooks, stores, and handle complex interactions.
 
 ```tsx
-// src/ui/custom/UserList/UserList.tsx
+// src/components/custom/UserList/UserList.tsx
 import { useState } from "react";
 import { useDebounce } from "@/hooks";
 import { useUIStore } from "@/stores";
