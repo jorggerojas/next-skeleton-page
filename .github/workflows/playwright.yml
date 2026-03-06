@@ -7,8 +7,7 @@ on:
     paths:
       - ".github/workflows/playwright.yml"
       - "src/**"
-      - "**/*.e2e.ts"
-      - "**/*.e2e.tsx"
+      - "e2e/**"
       - "playwright.config.*"
       - "package.json"
       - "pnpm-lock.yaml"
