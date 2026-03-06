@@ -39,10 +39,10 @@ The setup file exports:
 
 ### Component Tests
 
-Test components in `src/ui/custom/[Component]/[Component].test.tsx`:
+Test components in `src/components/custom/[ComponentName]/[ComponentName].test.tsx`:
 
 ```tsx
-// src/ui/custom/Button/Button.test.tsx
+// src/components/custom/Button/Button.test.tsx
 // Import from setup for convenience
 import { render, screen, userEvent, describe, it, expect, vi } from "@tests/setup";
 import Button from "./Button";
@@ -95,13 +95,13 @@ describe("useCounter", () => {
 
 ### API Route Tests
 
-Test API routes:
+Test API routes (Pages Router: handler is the default export from the route file):
 
 ```tsx
-// src/pages/api/users/route.test.ts
+// src/pages/api/users.test.ts
 import { describe, it, expect } from "vitest";
 import { createMocks } from "node-mocks-http";
-import handler from "./route";
+import handler from "./users";
 
 describe("/api/users", () => {
   it("returns users on GET", async () => {
@@ -199,7 +199,7 @@ npx playwright test e2e/homepage.spec.ts
 
 ```txt
 src/
-├── ui/
+├── components/
 │   └── custom/
 │       └── Component/
 │           ├── Component.tsx
@@ -210,8 +210,8 @@ src/
 │       └── useHook.test.tsx
 └── pages/
     └── api/
-        └── route.ts
-        └── route.test.ts
+        └── users.ts
+        └── users.test.ts
 
 e2e/
 └── feature.spec.ts
@@ -299,16 +299,16 @@ afterEach(() => {
 
 ```bash
 # Run all tests
-bun test
+pnpm test
 
 # Run tests in watch mode
-bun test --watch
+pnpm test --watch
 
 # Run tests with coverage
-bun test:coverage
+pnpm test:coverage
 
 # Run E2E tests
-npx playwright test
+pnpm exec playwright test
 ```
 
 ## Important Notes

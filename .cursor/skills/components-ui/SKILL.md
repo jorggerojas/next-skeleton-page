@@ -1,6 +1,6 @@
 ---
 name: components-ui
-description: Create and organize UI components in src/ui/custom/. Use when creating new custom components, organizing component structure, or working with component exports.
+description: Create and organize UI components in src/components/custom/. Use when creating new custom components, organizing component structure, or working with component exports.
 scope: [stores,testing]
 ---
 
@@ -8,10 +8,10 @@ scope: [stores,testing]
 
 ## Structure
 
-All custom UI components go in `src/ui/custom/[ComponentName]/` with this structure:
+All custom UI components go in `src/components/custom/[ComponentName]/` with this structure:
 
 ```txt
-src/ui/custom/
+src/components/custom/
 ├── ComponentName/
 │   ├── ComponentName.tsx    # Component implementation
 │   ├── ComponentName.test.tsx  # Component tests
@@ -26,7 +26,7 @@ src/ui/custom/
 Each component must export as **default**:
 
 ```tsx
-// src/ui/custom/Button/Button.tsx
+// src/components/custom/Button/Button.tsx
 import type { ReactNode } from "react";
 
 interface ButtonProps {
@@ -56,7 +56,7 @@ export default function Button({
 Each component folder must have an `index.ts` that exports the default:
 
 ```tsx
-// src/ui/custom/Button/index.ts
+// src/components/custom/Button/index.ts
 export { default } from "./Button";
 ```
 
@@ -65,7 +65,7 @@ export { default } from "./Button";
 Each component should have a test file:
 
 ```tsx
-// src/ui/custom/Button/Button.test.tsx
+// src/components/custom/Button/Button.test.tsx
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import Button from "./Button";
@@ -86,10 +86,10 @@ describe("Button", () => {
 
 ## Central Export
 
-All components are exported from `src/ui/custom/index.ts`:
+All components are exported from `src/components/custom/index.ts`:
 
 ```tsx
-// src/ui/custom/index.ts
+// src/components/custom/index.ts
 export { default as ErrorBoundary } from "./ErrorBoundary";
 export { default as SEO } from "./SEO";
 export { default as PageLayout } from "./PageLayout";

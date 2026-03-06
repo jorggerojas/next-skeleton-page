@@ -13,7 +13,7 @@ type Response = HttpResponses<User>;
 
 export default function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Response["success"]["data"] | Response["error"]>,
+  res: NextApiResponse<Response["success"] | Response["error"]>,
 ) {
   if (req.method !== "GET") {
     return res.status(405).json({

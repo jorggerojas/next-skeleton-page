@@ -1,6 +1,7 @@
 "use client";
 
 import { Component, type ReactNode } from "react";
+import { errorTracer } from "@/lib/observability/error";
 
 interface Props {
   children: ReactNode;
@@ -27,7 +28,10 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: { componentStack: string }) {
     this.setState({ errorInfo });
-    console.error("ErrorBoundary caught an error:", error, errorInfo);
+    errorTracer.trace(error, {
+      source: "ErrorBoundary",
+      componentStack: errorInfo.componentStack,
+    });
   }
 
   handleReset = () => {

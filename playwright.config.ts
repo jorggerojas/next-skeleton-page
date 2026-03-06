@@ -30,29 +30,20 @@ export default defineConfig({
     baseURL: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
   },
 
-  /* Run local dev server before starting the tests if not in CI */
+  /* Start server before tests. CI: use production server (workflow already built). Local: use dev server, reuse if running. */
   webServer: {
-    command: "bun run dev",
+    command: process.env.CI ? "pnpm run start" : "pnpm run dev",
     url: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
   },
 
-  /* Configure projects for major browsers */
-  projects: [
-    {
-      name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
-    },
-
-    {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
-    },
-
-    {
-      name: "webkit",
-      use: { ...devices["Desktop Safari"] },
-    },
-  ],
+  /* Configure projects for major browsers. CI runs Chromium only for speed. */
+  projects: process.env.CI
+    ? [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }]
+    : [
+        { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+        { name: "firefox", use: { ...devices["Desktop Firefox"] } },
+        { name: "webkit", use: { ...devices["Desktop Safari"] } },
+      ],
 });
