@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { ErrorBoundary } from "@/components";
 import { QueryProvider } from "./QueryProvider";
+import { FeatureFlagsProvider } from "./FeatureFlags";
 
 interface AppProvidersProps {
   children: ReactNode;
@@ -11,7 +12,9 @@ interface AppProvidersProps {
 export function AppProviders({ children }: AppProvidersProps) {
   return (
     <ErrorBoundary>
-      <QueryProvider>{children}</QueryProvider>
+      <QueryProvider>
+        <FeatureFlagsProvider>{children}</FeatureFlagsProvider>
+      </QueryProvider>
     </ErrorBoundary>
   );
 }

@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.0.0](https://github.com/jorggerojas/next-skeleton-page/compare/v0.1.1...v1.0.0) (2026-03-06)
+
+
+### Features
+
+* **observability:** add error tracer ([3c9d98a](https://github.com/jorggerojas/next-skeleton-page/commit/3c9d98ab6339af03348e1bfd059f6d8e122cbd60))
+* **transformations,features:** add feature flag implementations and transformation examples ([ffdc1a5](https://github.com/jorggerojas/next-skeleton-page/commit/ffdc1a5a056993bcf14665712b25441a78f45d15))
+* **workflows:** put changelog body content into release ([841fbba](https://github.com/jorggerojas/next-skeleton-page/commit/841fbbadd91d7254a92274f3f32027790c89f715))
+* **workflows:** update actions to make them simpler ([e7eac59](https://github.com/jorggerojas/next-skeleton-page/commit/e7eac599162af5b25b539bdbaeba0687bc8684af))
+
+
+### Bug Fixes
+
+* **scripts:** update package manager and agents reference ([ccec893](https://github.com/jorggerojas/next-skeleton-page/commit/ccec893b5b2ae75b753d013da4f47311546f56d6))
+
 ### 0.1.1 (2026-01-27)
 
 

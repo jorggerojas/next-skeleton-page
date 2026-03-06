@@ -1,10 +1,10 @@
 ---
 name: schemas
-description: Define the form schemas with yup, how to implement them and where to place them, how to type and how not
+description: Define the form schemas with Zod, how to implement them and where to place them, how to type and how not
 scope: [components-ui,hooks,pages-router,testing]
 ---
 
-# Form Schemas with Yup
+# Form Schemas with Zod
 
 ## Location
 
@@ -22,30 +22,37 @@ src/schemas/
 
 ```tsx
 // src/schemas/user.schema.ts
-import * as yup from "yup";
+import { z } from "zod";
 
-export const userSchema = yup.object({
-  name: yup.string().required("Name is required").min(2, "Name must be at least 2 characters"),
-  email: yup.string().required("Email is required").email("Invalid email format"),
-  age: yup.number().required("Age is required").positive().integer().min(18, "Must be 18 or older"),
+export const userSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .min(2, "Name must be at least 2 characters"),
+  email: z.string().min(1, "Email is required").email("Invalid email format"),
+  age: z
+    .number({ error: "Age is required" })
+    .positive()
+    .int()
+    .min(18, "Must be 18 or older"),
 });
 
-// Infer type from schema - ALWAYS use InferType
-export type UserFormData = yup.InferType<typeof userSchema>;
+// Infer type from schema - ALWAYS use z.infer
+export type UserFormData = z.infer<typeof userSchema>;
 ```
 
 ## Type Inference
 
-**CRITICAL**: Always use `yup.InferType` to derive types from schemas. Never manually define types that mirror schemas.
+**CRITICAL**: Always use `z.infer<typeof schema>` to derive types from schemas. Never manually define types that mirror schemas.
 
 ```tsx
 // ✅ GOOD: Type inferred from schema
-export const loginSchema = yup.object({
-  email: yup.string().required().email(),
-  password: yup.string().required().min(8),
+export const loginSchema = z.object({
+  email: z.string().min(1).email(),
+  password: z.string().min(1).min(8),
 });
 
-export type LoginFormData = yup.InferType<typeof loginSchema>;
+export type LoginFormData = z.infer<typeof loginSchema>;
 // Result: { email: string; password: string }
 
 // ❌ BAD: Manual type definition
@@ -61,107 +68,105 @@ interface LoginFormData {
 ### String Validations
 
 ```tsx
-const stringSchema = yup.object({
+const stringSchema = z.object({
   // Required string
-  required: yup.string().required("Field is required"),
+  required: z.string().min(1, "Field is required"),
 
   // Min/max length
-  username: yup.string().min(3).max(20),
+  username: z.string().min(3).max(20),
 
   // Email
-  email: yup.string().email("Invalid email"),
+  email: z.string().email("Invalid email"),
 
   // URL
-  website: yup.string().url("Invalid URL"),
+  website: z.string().url("Invalid URL"),
 
   // Regex pattern
-  phone: yup.string().matches(/^\+?[0-9]{10,14}$/, "Invalid phone number"),
+  phone: z.string().regex(/^\+?[0-9]{10,14}$/, "Invalid phone number"),
 
   // One of specific values
-  role: yup.string().oneOf(["admin", "user", "guest"]),
+  role: z.enum(["admin", "user", "guest"]),
 
-  // Trim whitespace
-  name: yup.string().trim().required(),
+  // Trim whitespace (Zod trims by default for email/url)
+  name: z.string().trim().min(1),
 });
 ```
 
 ### Number Validations
 
 ```tsx
-const numberSchema = yup.object({
+const numberSchema = z.object({
   // Positive integer
-  quantity: yup.number().positive().integer(),
+  quantity: z.number().positive().int(),
 
   // Range
-  rating: yup.number().min(1).max(5),
+  rating: z.number().min(1).max(5),
 
-  // Required with default
-  count: yup.number().required().default(0),
+  // Optional with default
+  count: z.number().default(0),
 
   // Price (2 decimal places)
-  price: yup
+  price: z
     .number()
     .positive()
-    .test("decimal", "Max 2 decimal places", (val) =>
-      val ? /^\d+(\.\d{1,2})?$/.test(String(val)) : true
-    ),
+    .refine((val) => !val || /^\d+(\.\d{1,2})?$/.test(String(val)), {
+      message: "Max 2 decimal places",
+    }),
 });
 ```
 
 ### Date Validations
 
 ```tsx
-const dateSchema = yup.object({
+const dateSchema = z.object({
   // Required date
-  birthDate: yup.date().required(),
+  birthDate: z.coerce.date(),
 
   // Min date (must be in future)
-  startDate: yup.date().min(new Date(), "Date must be in the future"),
+  startDate: z.coerce.date().refine((d) => d >= new Date(), "Date must be in the future"),
 
   // Max date (must be in past)
-  endDate: yup.date().max(new Date(), "Date must be in the past"),
+  endDate: z.coerce.date().refine((d) => d <= new Date(), "Date must be in the past"),
 });
 ```
 
 ### Conditional Validations
 
 ```tsx
-const conditionalSchema = yup.object({
-  hasCompany: yup.boolean(),
-  companyName: yup.string().when("hasCompany", {
-    is: true,
-    then: (schema) => schema.required("Company name is required"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-});
+const conditionalSchema = z
+  .object({
+    hasCompany: z.boolean(),
+    companyName: z.string(),
+  })
+  .refine((data) => !data.hasCompany || data.companyName.length > 0, {
+    message: "Company name is required",
+    path: ["companyName"],
+  });
 ```
 
 ### Array Validations
 
 ```tsx
-const arraySchema = yup.object({
+const arraySchema = z.object({
   // Array of strings
-  tags: yup.array().of(yup.string().required()).min(1, "At least one tag required"),
+  tags: z.array(z.string().min(1)).min(1, "At least one tag required"),
 
   // Array of objects
-  items: yup
-    .array()
-    .of(
-      yup.object({
-        id: yup.string().required(),
-        quantity: yup.number().positive().required(),
-      })
-    )
-    .required(),
+  items: z.array(
+    z.object({
+      id: z.string().min(1),
+      quantity: z.number().positive(),
+    })
+  ),
 });
 ```
 
 ## Integration with react-hook-form
 
 ```tsx
-// src/ui/custom/LoginForm/LoginForm.tsx
+// src/components/custom/LoginForm/LoginForm.tsx
 import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginFormData } from "@/schemas/auth.schema";
 
 interface LoginFormProps {
@@ -174,7 +179,7 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
-    resolver: yupResolver(loginSchema),
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -211,27 +216,27 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
 
 ```tsx
 // Base user schema
-const baseUserSchema = yup.object({
-  name: yup.string().required(),
-  email: yup.string().required().email(),
+const baseUserSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
 });
 
 // Extended for registration (adds password)
-export const registerSchema = baseUserSchema.concat(
-  yup.object({
-    password: yup.string().required().min(8),
-    confirmPassword: yup
-      .string()
-      .required()
-      .oneOf([yup.ref("password")], "Passwords must match"),
+export const registerSchema = baseUserSchema
+  .extend({
+    password: z.string().min(8),
+    confirmPassword: z.string().min(1),
   })
-);
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords must match",
+    path: ["confirmPassword"],
+  });
 
 // Extended for profile update (optional fields)
-export const updateProfileSchema = yup.object({
-  name: yup.string().min(2),
-  email: yup.string().email(),
-  bio: yup.string().max(500),
+export const updateProfileSchema = z.object({
+  name: z.string().min(2).optional(),
+  email: z.string().email().optional(),
+  bio: z.string().max(500).optional(),
 });
 ```
 
@@ -241,17 +246,17 @@ export const updateProfileSchema = yup.object({
 // Make all fields optional for PATCH requests
 const partialUserSchema = userSchema.partial();
 
-export type PartialUserData = yup.InferType<typeof partialUserSchema>;
+export type PartialUserData = z.infer<typeof partialUserSchema>;
 ```
 
 ### Pick/Omit Fields
 
 ```tsx
 // Pick specific fields
-const emailOnlySchema = userSchema.pick(["email"]);
+const emailOnlySchema = userSchema.pick({ email: true });
 
 // Omit specific fields
-const noPasswordSchema = registerSchema.omit(["password", "confirmPassword"]);
+const noPasswordSchema = registerSchema.omit({ password: true, confirmPassword: true });
 ```
 
 ## Testing Schemas
@@ -262,42 +267,42 @@ import { describe, it, expect } from "vitest";
 import { userSchema } from "../user.schema";
 
 describe("userSchema", () => {
-  it("validates correct data", async () => {
+  it("validates correct data", () => {
     const validData = {
       name: "John Doe",
       email: "john@example.com",
       age: 25,
     };
 
-    await expect(userSchema.validate(validData)).resolves.toEqual(validData);
+    expect(userSchema.parse(validData)).toEqual(validData);
   });
 
-  it("rejects invalid email", async () => {
+  it("rejects invalid email", () => {
     const invalidData = {
       name: "John",
       email: "invalid-email",
       age: 25,
     };
 
-    await expect(userSchema.validate(invalidData)).rejects.toThrow("Invalid email format");
+    expect(() => userSchema.parse(invalidData)).toThrow();
   });
 
-  it("rejects missing required fields", async () => {
+  it("rejects missing required fields", () => {
     const incompleteData = {
       name: "John",
     };
 
-    await expect(userSchema.validate(incompleteData)).rejects.toThrow();
+    expect(() => userSchema.parse(incompleteData)).toThrow();
   });
 
-  it("rejects age under 18", async () => {
+  it("rejects age under 18", () => {
     const underageData = {
       name: "John",
       email: "john@example.com",
       age: 16,
     };
 
-    await expect(userSchema.validate(underageData)).rejects.toThrow("Must be 18 or older");
+    expect(() => userSchema.parse(underageData)).toThrow();
   });
 });
 ```
@@ -341,12 +346,12 @@ export const getServerSideProps: GetServerSideProps = async () => {
 
 ## Important Notes
 
-- **Always use `yup.InferType`** - Never manually define types that mirror schemas
+- **Always use `z.infer<typeof schema>`** - Never manually define types that mirror schemas
 - **Schemas in `src/schemas/`** - Keep all schemas organized by domain
 - **Export types with schemas** - Always export the inferred type alongside the schema
-- **Use `@hookform/resolvers/yup`** - For react-hook-form integration
+- **Use `@hookform/resolvers/zod`** - For react-hook-form integration (zodResolver)
 - **Test your schemas** - Validate edge cases and error messages
-- **Never use `any`** - Yup provides full type safety, use it
-- **Compose schemas** - Use `.concat()`, `.pick()`, `.omit()` for reusability
-- **Custom error messages** - Always provide user-friendly error messages
+- **Never use `any`** - Zod provides full type safety, use it
+- **Compose schemas** - Use `.extend()`, `.pick()`, `.omit()`, `.merge()` for reusability
+- **Custom error messages** - Pass as second argument: `z.string().min(1, "Required")`
 - **Default values** - Use `.default()` for optional fields with defaults

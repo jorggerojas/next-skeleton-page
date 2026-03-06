@@ -12,12 +12,12 @@ export enum HTTP_RESPONSE_MESSAGE {
 
 export type HttpResponses<T> = {
   success: {
-    message: typeof HTTP_RESPONSE_MESSAGE;
+    message: HTTP_RESPONSE_MESSAGE;
     data: T;
     status: number;
   };
   error: {
-    message: typeof HTTP_RESPONSE_MESSAGE;
+    message: HTTP_RESPONSE_MESSAGE;
     status: number;
     errors: Record<string, string[]> | string;
   };
