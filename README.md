@@ -179,17 +179,6 @@ git push origin develop
 - [ ] Synced `develop` with `main`
 - [ ] Verified release on GitHub
 
-## Agent Skills
-
-This project includes Cursor agent skills to help with development. See [AGENTS.md](./AGENTS.md) for details.
-
-The skills are located in `.cursor/skills/` and provide guidance for:
-
-- Working with Pages Router (`pages-router`)
-- Creating API routes (`api-routes`)
-
-These skills help maintain consistency and follow project patterns automatically. See more here on [README file](.cursor/skills/README.md)
-
 ## Learn More
 
 - [Next.js Documentation](https://nextjs.org/docs) - Learn about Next.js features and API
